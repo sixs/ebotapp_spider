@@ -1,2 +1,2 @@
 # ebotapp_spider
-艺恩数据网（http://ebotapp.entgroup.cn）爬虫
+艺恩数据网爬虫 —— http://ebotapp.entgroup.cn
