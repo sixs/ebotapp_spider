@@ -37,16 +37,10 @@ class EbotSpider:
 				self.sheet1.write(self.count, 1, '影片名称')
 				self.sheet1.write(self.count, 2, '今日票房')
 				self.sheet1.write(self.count, 3, '场次')
-				self.sheet1.write(self.count, 4, '排座')
-				self.sheet1.write(self.count, 5, '人次')
-				self.sheet1.write(self.count, 6, '累计票房')
-				self.sheet1.write(self.count, 7, '票房占比')
-				self.sheet1.write(self.count, 8, '场次占比')
-				self.sheet1.write(self.count, 9, '上座率')
-				self.sheet1.write(self.count, 10, '排片占比')
-				self.sheet1.write(self.count, 11, '平均票价')
-				self.sheet1.write(self.count, 12, '服务费')
-				self.sheet1.write(self.count, 13, '场均人次')
+				self.sheet1.write(self.count, 4, '人次')
+				self.sheet1.write(self.count, 5, '累计票房')
+				self.sheet1.write(self.count, 6, '服务费')
+				self.sheet1.write(self.count, 7, '场均人次')
 				self.getMovieDayBoxOfficeList(type, year)
 				sleep(5)
 			filename = './电影信息年份采集_{}.xls'.format(int(time()))
@@ -89,38 +83,35 @@ class EbotSpider:
 	### 电影票房、排片等指标
 	def getMovieDayBoxOfficeList(self, type, date_info):
 		page = 1
-		while(True):
+		if type=='Year':
+			url = 'http://ebotapp.entgroup.cn/API/DataBox/Movie/GetMovieYearBoxOfficeList'
+		elif type=='Day':
 			url = 'http://ebotapp.entgroup.cn/API/DataBox/Movie/GetMovieDayBoxOfficeList'
+		while(True):
 			data = {
-				'r':'0.4218466592800554',
+				'r':0.5684623531369022,
 				'PageIndex':page,
-				'PageSize':'20',
+				'PageSize':'1000',
 				'Order':'201',
 				'OrderType':'DESC',
 				'UserID':'',
-				'Index':'102,201,202,205,203,211,221,222,606,225,251,801,604',
 				'DateSort':type,
 				'Date':date_info,
 				'sDate':date_info,
 				'eDate':date_info,
+				'Index':'102,201,202,205,203,211,221,222,606,225,251,801,604',
 				'Line':'',
 				'City':'',
 				'CityLevel':'',
-				'ServicePrice':'1'
+				'ServicePrice':0 if type=='Year' else 1,
 			}
 			headers = {
-				'Accept':'text/plain, */*; q=0.01',
-				'Accept-Encoding':'gzip, deflate',
-				'Accept-Language':'zh-CN,zh;q=0.9',
-				'Connection':'keep-alive',
-				'Content-Type':'application/x-www-form-urlencoded; charset=UTF-8',
-				'X-Requested-With':'XMLHttpRequest',
 				'Host':'ebotapp.entgroup.cn',
 				'Origin':'http://ebotapp.entgroup.cn',
 				'Referer':'http://ebotapp.entgroup.cn/DataBox/Film/Movie/Index',
 				'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36'
 			}
-			req = self.session.post(url=url,data=data,headers=headers)
+			req = self.session.post(url=url, data=data, headers=headers)
 			json_data = json.loads(req.text)
 			if json_data.get('Data').get('Table2'):
 				data_list = json_data['Data']['Table2']
@@ -128,50 +119,78 @@ class EbotSpider:
 					print('采集完成...')
 					break
 				for data in data_list:
-					# 票房占比
-					BoxPercent = data['BoxPercent']
-					# 排片占比
-					OfferSeatPercent = data['OfferSeatPercent']
-					# 电影名
-					MovieName = data['MovieName']
-					# 排名
-					Irank = data['Irank']
-					# 今日票房
-					BoxOffice = data['BoxOffice']
-					# 累计票房
-					SumBoxOffice = data['SumBoxOffice']
-					# 排座
-					OfferSeat = data['OfferSeat']
-					# 场次占比
-					ShowPercent = data['ShowPercent']
-					# 场次
-					ShowCount = data['ShowCount']
-					# 人次
-					AudienceCount = data['AudienceCount']
-					# 上座率
-					Attendance = data['Attendance']
-					# 平均票价
-					AvgBoxOffice = data['AvgBoxOffice']
-					# 服务费
-					ServicePrice = data['ServicePrice'] if data['ServicePrice'] is not None else '-'
-					# 场均人次
-					AvgShowPeople = data['AvgShowPeople']
-					self.count += 1
-					self.sheet1.write(self.count, 0, Irank)
-					self.sheet1.write(self.count, 1, MovieName)
-					self.sheet1.write(self.count, 2, BoxOffice)
-					self.sheet1.write(self.count, 3, ShowCount)
-					self.sheet1.write(self.count, 4, OfferSeat)
-					self.sheet1.write(self.count, 5, AudienceCount)
-					self.sheet1.write(self.count, 6, SumBoxOffice)
-					self.sheet1.write(self.count, 7, BoxPercent)
-					self.sheet1.write(self.count, 8, ShowPercent)
-					self.sheet1.write(self.count, 9, Attendance)
-					self.sheet1.write(self.count, 10, OfferSeatPercent)
-					self.sheet1.write(self.count, 11, AvgBoxOffice)
-					self.sheet1.write(self.count, 12, ServicePrice)
-					self.sheet1.write(self.count, 13, AvgShowPeople)
-					print('电影-{}\t采集完成...'.format(MovieName))
+					if type=='Day':
+						# 票房占比
+						BoxPercent = data['BoxPercent']
+						# 排片占比
+						OfferSeatPercent = data['OfferSeatPercent']
+						# 电影名
+						MovieName = data['MovieName']
+						# 排名
+						Irank = data['Irank']
+						# 今日票房
+						BoxOffice = data['BoxOffice']
+						# 累计票房
+						SumBoxOffice = data['SumBoxOffice']
+						# 排座
+						OfferSeat = data['OfferSeat']
+						# 场次占比
+						ShowPercent = data['ShowPercent']
+						# 场次
+						ShowCount = data['ShowCount']
+						# 人次
+						AudienceCount = data['AudienceCount']
+						# 上座率
+						Attendance = data['Attendance']
+						# 平均票价
+						AvgBoxOffice = data['AvgBoxOffice']
+						# 服务费
+						ServicePrice = data['ServicePrice'] if data['ServicePrice'] is not None else '-'
+						# 场均人次
+						AvgShowPeople = data['AvgShowPeople']
+						self.count += 1
+						self.sheet1.write(self.count, 0, Irank)
+						self.sheet1.write(self.count, 1, MovieName)
+						self.sheet1.write(self.count, 2, BoxOffice)
+						self.sheet1.write(self.count, 3, ShowCount)
+						self.sheet1.write(self.count, 4, OfferSeat)
+						self.sheet1.write(self.count, 5, AudienceCount)
+						self.sheet1.write(self.count, 6, SumBoxOffice)
+						self.sheet1.write(self.count, 7, BoxPercent)
+						self.sheet1.write(self.count, 8, ShowPercent)
+						self.sheet1.write(self.count, 9, Attendance)
+						self.sheet1.write(self.count, 10, OfferSeatPercent)
+						self.sheet1.write(self.count, 11, AvgBoxOffice)
+						self.sheet1.write(self.count, 12, ServicePrice)
+						self.sheet1.write(self.count, 13, AvgShowPeople)
+						print('电影-{}\t采集完成...'.format(MovieName))
+					elif type=='Year':
+						# 电影名
+						MovieName = data['MovieName']
+						# 排名
+						Irank = data['Irank']
+						# 今日票房
+						BoxOffice = data['BoxOffice']
+						# 累计票房
+						SumBoxOffice = data['SumBoxOffice']
+						# 场次
+						ShowCount = data['ShowCount']
+						# 人次
+						AudienceCount = data['AudienceCount']
+						# 服务费
+						ServicePrice = data['ServicePrice'] if data['ServicePrice'] is not None else '-'
+						# 场均人次
+						AvgShowPeople = data['AvgShowPeople']
+						self.count += 1
+						self.sheet1.write(self.count, 0, Irank)
+						self.sheet1.write(self.count, 1, MovieName)
+						self.sheet1.write(self.count, 2, BoxOffice)
+						self.sheet1.write(self.count, 3, ShowCount)
+						self.sheet1.write(self.count, 4, AudienceCount)
+						self.sheet1.write(self.count, 5, SumBoxOffice)
+						self.sheet1.write(self.count, 6, ServicePrice)
+						self.sheet1.write(self.count, 7, AvgShowPeople)
+						print('电影-{}\t采集完成...'.format(MovieName))
 			else:
 				break
 			page += 1
@@ -183,7 +202,7 @@ if __name__ == '__main__':
 	存至一个excel文件的不同工作表
 	'''
 	type = 'Year'
-	year_list = [2015, 2016, 2017]
+	year_list = [2015]
 	ebotspider1 = EbotSpider(type, year_list=year_list)
 
 	'''
@@ -197,4 +216,4 @@ if __name__ == '__main__':
 		'begin_date':'2017-04-01',
 		'end_date':'2017-04-05'
 	}
-	ebotspider1 = EbotSpider(type, day_dict=day_dict)
+	# ebotspider2 = EbotSpider(type, day_dict=day_dict)
