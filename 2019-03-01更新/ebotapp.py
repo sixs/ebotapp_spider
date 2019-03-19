@@ -1,7 +1,7 @@
 #encoding:utf-8
 '''
 author:sixseven
-update:2018-04-15
+update:2019-03-02
 desc:返回数据加密，添加解密
 contact:2557692481@qq.com
 '''
@@ -11,7 +11,7 @@ import xlwt
 from time import sleep,time
 import datetime
 from pyDes import *
-from binascii import b2a_hex, a2b_hex
+from binascii import a2b_hex
 
 # 返回一段时间内所有天
 def getBetweenDay(begin_date, end_date):  
@@ -211,9 +211,17 @@ class EbotSpider:
 
         _0xa0c834 = _0xa0c834[8:] if _0x2cf8ae==0 else _0xa0c834[:_0x2cf8ae]+_0xa0c834[_0x2cf8ae+8:]
 
-        ciphertext = a2b_hex(bytes(_0xa0c834, encoding = "utf8"))
-        key = bytes(_0x554c90, encoding = "utf8")
-        iv = bytes(_0x554c90, encoding = "utf8")
+
+        # 兼容py2/3
+        if isinstance(_0xa0c834, str):  # py3
+            ciphertext = a2b_hex(bytes(_0xa0c834, encoding = "utf8"))
+            key = bytes(_0x554c90, encoding = "utf8")
+            iv = bytes(_0x554c90, encoding = "utf8")
+        else:   # py2
+            ciphertext = a2b_hex(bytes(_0xa0c834))
+            key = bytes(_0x554c90)
+            iv = bytes(_0x554c90)
+
         mode = ECB
         padding = PAD_PKCS5
 
@@ -228,7 +236,7 @@ if __name__ == '__main__':
     存至一个excel文件的不同工作表
     '''
     type = 'Year'
-    year_list = [2015]
+    year_list = [2019]
     ebotspider1 = EbotSpider(type, year_list=year_list)
 
     '''
@@ -239,7 +247,7 @@ if __name__ == '__main__':
     '''
     type = 'Day'
     day_dict = {
-        'begin_date':'2017-04-01',
-        'end_date':'2017-04-05'
+        'begin_date':'2019-03-02',
+        'end_date':'2019-03-02'
     }
     # ebotspider2 = EbotSpider(type, day_dict=day_dict)
